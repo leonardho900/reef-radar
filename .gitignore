@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+
+# Java
+backend/target/
+*.class
+
+# VS Code
+.vscode/
+
+# Environment secrets
+.env
+.env.*
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
