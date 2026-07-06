@@ -5,12 +5,12 @@ export async function POST(request: NextRequest) {
 
   if (!token) {
     return NextResponse.json(
-      { message: "Authentication required" },
+      { message: "Please log in again." },
       { status: 401 },
     );
   }
 
-  const diveLog = await request.json();
+  const body = await request.json();
 
   const response = await fetch(
     `${process.env.BACKEND_URL}/api/dive-logs`,
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(diveLog),
+      body: JSON.stringify(body),
     },
   );
 

@@ -16,6 +16,7 @@ export default function DiveLogForm({
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDiveSiteId, setSelectedDiveSiteId] = useState("");
+  const [diveSiteQuery, setDiveSiteQuery] = useState("");
 
   const now = new Date();
   const today = [
@@ -27,6 +28,12 @@ export default function DiveLogForm({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+
+    if (!selectedDiveSiteId) {
+      setError("Choose a dive site from the suggestions before continuing.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     const formData = new FormData(event.currentTarget);
@@ -84,7 +91,7 @@ export default function DiveLogForm({
     <main className="relative min-h-screen overflow-hidden bg-slate-950 px-5 py-8 text-white sm:px-8 sm:py-12">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_at_top,_rgba(8,145,178,0.18),_transparent_65%)]" />
 
-      <section className="relative mx-auto max-w-4xl">
+      <section className="relative mx-auto max-w-5xl">
         <Link
           href="/dashboard"
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 transition hover:text-cyan-300"
@@ -93,24 +100,42 @@ export default function DiveLogForm({
           Back to dashboard
         </Link>
 
-        <header className="mt-8 max-w-2xl">
+        <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_1.6fr] lg:items-start">
+          <header className="lg:sticky lg:top-10">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">
               <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
-              New log entry
+              Step 1 of 2
             </div>
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
               Record your dive
             </h1>
-            <p className="mt-4 text-base leading-7 text-slate-400 sm:text-lg">
+            <p className="mt-4 max-w-md text-base leading-7 text-slate-400">
               Capture the essentials from your dive computer and memory. You
               will add marine-life sightings in the next step.
             </p>
-        </header>
 
-        <form
-          onSubmit={handleSubmit}
-          className="mt-10 overflow-hidden rounded-3xl border border-cyan-200/10 bg-slate-900/90 shadow-[0_24px_80px_-32px_rgba(6,182,212,0.32)] ring-1 ring-white/[0.03] backdrop-blur"
-        >
+            <ol className="mt-8 space-y-3" aria-label="Dive logging progress">
+              <li className="flex items-center gap-3 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.07] p-3">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-300 font-bold text-slate-950">1</span>
+                <div>
+                  <p className="text-sm font-semibold text-white">Dive details</p>
+                  <p className="text-xs text-slate-400">Site and conditions</p>
+                </div>
+              </li>
+              <li className="flex items-center gap-3 p-3 text-slate-500">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 font-bold">2</span>
+                <div>
+                  <p className="text-sm font-semibold">Marine sightings</p>
+                  <p className="text-xs">What you observed</p>
+                </div>
+              </li>
+            </ol>
+          </header>
+
+          <form
+            onSubmit={handleSubmit}
+            className="overflow-hidden rounded-3xl border border-cyan-200/10 bg-slate-900/90 shadow-[0_24px_80px_-32px_rgba(6,182,212,0.32)] ring-1 ring-white/[0.03] backdrop-blur"
+          >
           <FormSection
             number="01"
             title="Where and when"
@@ -118,22 +143,47 @@ export default function DiveLogForm({
           >
             <div className="grid gap-6 sm:grid-cols-[1.35fr_1fr]">
               <Field label="Dive site">
-                <select
-                  name="diveSiteId"
+                <input
+                  type="text"
+                  list="dive-site-options"
                   required
-                  value={selectedDiveSiteId}
-                  onChange={(event) => setSelectedDiveSiteId(event.target.value)}
+                  value={diveSiteQuery}
+                  onChange={(event) => {
+                    const query = event.target.value;
+                    const match = diveSites.find(
+                      (site) =>
+                        site.name.toLocaleLowerCase() ===
+                        query.trim().toLocaleLowerCase(),
+                    );
+
+                    setDiveSiteQuery(query);
+                    setSelectedDiveSiteId(match ? String(match.id) : "");
+                  }}
+                  placeholder="Search or choose a dive site"
+                  autoComplete="off"
+                  aria-describedby="dive-site-help"
                   className="input"
-                >
-                  <option value="" disabled>
-                    Select a dive site
-                  </option>
+                />
+                <input
+                  type="hidden"
+                  name="diveSiteId"
+                  value={selectedDiveSiteId}
+                />
+                <datalist id="dive-site-options">
                   {diveSites.map((site) => (
-                    <option key={site.id} value={site.id}>
-                      {site.name}
-                    </option>
+                    <option key={site.id} value={site.name} />
                   ))}
-                </select>
+                </datalist>
+                <p
+                  id="dive-site-help"
+                  className={`mt-2 text-xs ${
+                    selectedDiveSiteId ? "text-emerald-300" : "text-slate-500"
+                  }`}
+                >
+                  {selectedDiveSiteId
+                    ? `Selected: ${diveSiteQuery}`
+                    : "Start typing to filter the available sites."}
+                </p>
               </Field>
 
               <Field label="Dive date">
@@ -242,7 +292,8 @@ export default function DiveLogForm({
               </button>
             </div>
           </div>
-        </form>
+          </form>
+        </div>
       </section>
     </main>
   );
@@ -289,13 +340,15 @@ function FormSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="grid gap-6 border-b border-white/[0.08] px-6 py-7 transition-colors hover:bg-white/[0.012] sm:grid-cols-[11rem_1fr] sm:gap-10 sm:px-8 sm:py-9">
-      <div>
+    <section className="border-b border-white/[0.08] px-6 py-7 transition-colors hover:bg-white/[0.012] sm:px-8 sm:py-8">
+      <div className="mb-6 flex items-start gap-4">
         <p className="inline-flex h-7 min-w-7 items-center justify-center rounded-lg bg-cyan-300/10 px-2 text-[0.6875rem] font-bold tracking-[0.12em] text-cyan-300 ring-1 ring-cyan-300/10">
           {number}
         </p>
-        <h2 className="mt-3 text-lg font-semibold tracking-tight text-white">{title}</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight text-white">{title}</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p>
+        </div>
       </div>
       <div>{children}</div>
     </section>

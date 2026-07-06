@@ -9,7 +9,14 @@ public record DiveSiteResponse(
         BigDecimal latitude,
         BigDecimal longitude,
         Difficulty difficulty,
-        Integer averageVisibilityMeters
+        Integer averageVisibilityMeters,
+        String countryCode,
+        String countryName,
+        String region,
+        String island,
+        Long createdByUserId,
+        String sourceProvider,
+        String sourceUrl
 ) {
     public static DiveSiteResponse from(DiveSite diveSite) {
         return new DiveSiteResponse(
@@ -19,7 +26,16 @@ public record DiveSiteResponse(
                 diveSite.getLatitude(),
                 diveSite.getLongitude(),
                 diveSite.getDifficulty(),
-                diveSite.getAverageVisibilityMeters()
+                diveSite.getAverageVisibilityMeters(),
+                diveSite.getCountryCode(),
+                diveSite.getCountryName(),
+                diveSite.getRegion(),
+                diveSite.getIsland(),
+                diveSite.getCreatedByUser() == null
+                        ? null
+                        : diveSite.getCreatedByUser().getId(),
+                diveSite.getSourceProvider(),
+                diveSite.getSourceUrl()
         );
     }
 }

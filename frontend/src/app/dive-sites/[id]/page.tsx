@@ -9,6 +9,12 @@ type DiveSite = {
   longitude: number;
   difficulty: string;
   averageVisibilityMeters: number;
+  countryCode: string;
+  countryName: string;
+  region: string;
+  island: string | null;
+  sourceProvider: string | null;
+  sourceUrl: string | null;
 };
 
 type Sighting = {
@@ -76,6 +82,7 @@ export default async function DiveSitePage({ params }: PageProps) {
             <div>
               <p className="text-sm font-medium text-cyan-400">Dive site</p>
               <h1 className="mt-2 text-4xl font-bold">{site.name}</h1>
+              <p className="mt-2 text-slate-400">{[site.countryName, site.region, site.island].filter(Boolean).join(" · ")}</p>
             </div>
 
             <span className="rounded-full bg-cyan-400/10 px-4 py-2 text-sm text-cyan-300">
@@ -88,10 +95,19 @@ export default async function DiveSitePage({ params }: PageProps) {
           </p>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            <Info label="Visibility" value={`${site.averageVisibilityMeters} m`} />
+            <Info label="Visibility" value={site.averageVisibilityMeters ? `${site.averageVisibilityMeters} m` : "Not reported"} />
             <Info label="Latitude" value={String(site.latitude)} />
             <Info label="Longitude" value={String(site.longitude)} />
           </div>
+
+          {site.sourceProvider === "OPENSTREETMAP" && site.sourceUrl && (
+            <p className="mt-6 text-xs text-slate-500">
+              Source:{" "}
+              <a href={site.sourceUrl} className="underline hover:text-slate-300">
+                © OpenStreetMap contributors
+              </a>
+            </p>
+          )}
         </section>
 
         <section className="mt-12">
@@ -113,9 +129,7 @@ export default async function DiveSitePage({ params }: PageProps) {
                 >
                   <div className="flex flex-wrap justify-between gap-4">
                     <div>
-                      <h3 className="text-lg font-semibold">
-                        {sighting.speciesCommonName}
-                      </h3>
+                      <Link href={`/species/${sighting.speciesId}`} className="text-lg font-semibold hover:text-cyan-300">{sighting.speciesCommonName}</Link>
                       <p className="text-sm italic text-slate-400">
                         {sighting.speciesScientificName}
                       </p>
