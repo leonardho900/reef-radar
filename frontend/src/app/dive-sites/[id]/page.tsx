@@ -35,7 +35,7 @@ type PageProps = {
 
 async function getDiveSite(id: string): Promise<DiveSite> {
   const response = await fetch(
-    `http://localhost:8080/api/dive-sites/${id}`,
+    `${process.env.BACKEND_URL}/api/dive-sites/${id}`,
     { cache: "no-store" },
   );
 
@@ -52,7 +52,7 @@ async function getDiveSite(id: string): Promise<DiveSite> {
 
 async function getSightings(id: string): Promise<Sighting[]> {
   const response = await fetch(
-    `http://localhost:8080/api/dive-sites/${id}/sightings`,
+    `${process.env.BACKEND_URL}/api/dive-sites/${id}/sightings`,
     { cache: "no-store" },
   );
 
