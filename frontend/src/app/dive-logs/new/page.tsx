@@ -5,9 +5,16 @@ import DiveLogForm from "./DiveLogForm";
 type DiveSite = {
   id: number;
   name: string;
+  countryName: string;
+  region: string;
+  island: string | null;
 };
 
-export default async function NewDiveLogPage() {
+export default async function NewDiveLogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ diveSiteId?: string }>;
+}) {
   const cookieStore = await cookies();
 
   if (!cookieStore.get("reefradar_token")) {
@@ -24,6 +31,29 @@ export default async function NewDiveLogPage() {
   }
 
   const diveSites: DiveSite[] = await response.json();
+  const sortedDiveSites = diveSites.toSorted((left, right) =>
+    ["countryName", "region", "island", "name"]
+      .map((field) => {
+        const key = field as keyof DiveSite;
+        return String(left[key] ?? "").localeCompare(
+          String(right[key] ?? ""),
+          undefined,
+          { sensitivity: "base" },
+        );
+      })
+      .find((comparison) => comparison !== 0) ?? 0,
+  );
+  const { diveSiteId } = await searchParams;
+  const initialDiveSiteId = sortedDiveSites.some(
+    (site) => String(site.id) === diveSiteId,
+  )
+    ? diveSiteId
+    : undefined;
 
-  return <DiveLogForm diveSites={diveSites} />;
+  return (
+    <DiveLogForm
+      diveSites={sortedDiveSites}
+      initialDiveSiteId={initialDiveSiteId}
+    />
+  );
 }

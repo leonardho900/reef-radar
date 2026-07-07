@@ -1,22 +1,84 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
 type DiveSite = {
   id: number;
   name: string;
+  countryName: string;
+  region: string;
+  island: string | null;
 };
+
+const NO_ISLAND = "__NO_ISLAND__";
 
 export default function DiveLogForm({
   diveSites,
+  initialDiveSiteId,
 }: {
   diveSites: DiveSite[];
+  initialDiveSiteId?: string;
 }) {
+  const initialDiveSite = diveSites.find(
+    (site) => String(site.id) === initialDiveSiteId,
+  );
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedDiveSiteId, setSelectedDiveSiteId] = useState("");
-  const [diveSiteQuery, setDiveSiteQuery] = useState("");
+  const [selectedDiveSiteId, setSelectedDiveSiteId] = useState(
+    initialDiveSiteId ?? "",
+  );
+  const [selectedCountry, setSelectedCountry] = useState(
+    initialDiveSite?.countryName ?? "",
+  );
+  const [selectedRegion, setSelectedRegion] = useState(
+    initialDiveSite?.region ?? "",
+  );
+  const [selectedIsland, setSelectedIsland] = useState(
+    initialDiveSite ? (initialDiveSite.island ?? NO_ISLAND) : "",
+  );
+
+  const countries = useMemo(
+    () => [...new Set(diveSites.map((site) => site.countryName))],
+    [diveSites],
+  );
+  const regions = useMemo(
+    () => [
+      ...new Set(
+        diveSites
+          .filter((site) => site.countryName === selectedCountry)
+          .map((site) => site.region),
+      ),
+    ],
+    [diveSites, selectedCountry],
+  );
+  const islands = useMemo(
+    () => [
+      ...new Set(
+        diveSites
+          .filter(
+            (site) =>
+              site.countryName === selectedCountry &&
+              site.region === selectedRegion,
+          )
+          .map((site) => site.island ?? NO_ISLAND),
+      ),
+    ],
+    [diveSites, selectedCountry, selectedRegion],
+  );
+  const filteredDiveSites = useMemo(
+    () =>
+      diveSites.filter(
+        (site) =>
+          site.countryName === selectedCountry &&
+          site.region === selectedRegion &&
+          (site.island ?? NO_ISLAND) === selectedIsland,
+      ),
+    [diveSites, selectedCountry, selectedRegion, selectedIsland],
+  );
+  const selectedDiveSite = filteredDiveSites.find(
+    (site) => String(site.id) === selectedDiveSiteId,
+  );
 
   const now = new Date();
   const today = [
@@ -141,49 +203,93 @@ export default function DiveLogForm({
             title="Where and when"
             description="Start with the essentials for this dive."
           >
-            <div className="grid gap-6 sm:grid-cols-[1.35fr_1fr]">
-              <Field label="Dive site">
-                <input
-                  type="text"
-                  list="dive-site-options"
+            <div className="grid gap-6 sm:grid-cols-2">
+              <Field label="Country">
+                <select
                   required
-                  value={diveSiteQuery}
+                  value={selectedCountry}
                   onChange={(event) => {
-                    const query = event.target.value;
-                    const match = diveSites.find(
-                      (site) =>
-                        site.name.toLocaleLowerCase() ===
-                        query.trim().toLocaleLowerCase(),
-                    );
-
-                    setDiveSiteQuery(query);
-                    setSelectedDiveSiteId(match ? String(match.id) : "");
+                    setSelectedCountry(event.target.value);
+                    setSelectedRegion("");
+                    setSelectedIsland("");
+                    setSelectedDiveSiteId("");
                   }}
-                  placeholder="Search or choose a dive site"
-                  autoComplete="off"
-                  aria-describedby="dive-site-help"
-                  className="input"
-                />
-                <input
-                  type="hidden"
-                  name="diveSiteId"
-                  value={selectedDiveSiteId}
-                />
-                <datalist id="dive-site-options">
-                  {diveSites.map((site) => (
-                    <option key={site.id} value={site.name} />
-                  ))}
-                </datalist>
-                <p
-                  id="dive-site-help"
-                  className={`mt-2 text-xs ${
-                    selectedDiveSiteId ? "text-emerald-300" : "text-slate-500"
-                  }`}
+                  className="input bg-slate-950/70"
                 >
-                  {selectedDiveSiteId
-                    ? `Selected: ${diveSiteQuery}`
-                    : "Start typing to filter the available sites."}
-                </p>
+                  <option value="">Choose a country</option>
+                  {countries.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="Region">
+                <select
+                  required
+                  value={selectedRegion}
+                  disabled={!selectedCountry}
+                  onChange={(event) => {
+                    setSelectedRegion(event.target.value);
+                    setSelectedIsland("");
+                    setSelectedDiveSiteId("");
+                  }}
+                  className="input bg-slate-950/70 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">
+                    {selectedCountry ? "Choose a region" : "Choose a country first"}
+                  </option>
+                  {regions.map((region) => (
+                    <option key={region} value={region}>
+                      {region}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="Island">
+                <select
+                  required
+                  value={selectedIsland}
+                  disabled={!selectedRegion}
+                  onChange={(event) => {
+                    setSelectedIsland(event.target.value);
+                    setSelectedDiveSiteId("");
+                  }}
+                  className="input bg-slate-950/70 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">
+                    {selectedRegion ? "Choose an island" : "Choose a region first"}
+                  </option>
+                  {islands.map((island) => (
+                    <option key={island} value={island}>
+                      {island === NO_ISLAND ? "No island specified" : island}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="Dive site">
+                <select
+                  name="diveSiteId"
+                  required
+                  value={selectedDiveSiteId}
+                  disabled={!selectedIsland}
+                  onChange={(event) =>
+                    setSelectedDiveSiteId(event.target.value)
+                  }
+                  className="input bg-slate-950/70 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">
+                    {selectedIsland ? "Choose a dive site" : "Choose an island first"}
+                  </option>
+                  {filteredDiveSites.map((site) => (
+                    <option key={site.id} value={site.id}>
+                      {site.name}
+                    </option>
+                  ))}
+                </select>
               </Field>
 
               <Field label="Dive date">
@@ -196,6 +302,31 @@ export default function DiveLogForm({
                   className="input"
                 />
               </Field>
+
+              <div
+                className={`sm:col-span-2 rounded-xl border px-4 py-3 text-sm transition ${
+                  selectedDiveSite
+                    ? "border-cyan-300/20 bg-cyan-300/[0.07] text-cyan-100"
+                    : "border-white/[0.07] bg-slate-950/35 text-slate-500"
+                }`}
+                aria-live="polite"
+              >
+                {selectedDiveSite ? (
+                  <span>
+                    <span className="font-semibold text-cyan-300">Selected location:</span>{" "}
+                    {[
+                      selectedCountry,
+                      selectedRegion,
+                      selectedIsland === NO_ISLAND ? null : selectedIsland,
+                      selectedDiveSite.name,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                ) : (
+                  "Choose a country, region, island, and dive site to continue."
+                )}
+              </div>
             </div>
           </FormSection>
 

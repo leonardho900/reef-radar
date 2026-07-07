@@ -38,6 +38,8 @@ export default function ExploreFilters({
   const [island, setIsland] = useState(
     initialFilters.country ? (initialFilters.island ?? "") : "",
   );
+  const [speciesId, setSpeciesId] = useState(initialFilters.speciesId ?? "");
+  const [isOpen, setIsOpen] = useState(false);
 
   const countries = useMemo(
     () =>
@@ -79,86 +81,94 @@ export default function ExploreFilters({
     [country, region, sites],
   );
 
-  return (
-    <form
-      className="grid gap-4 rounded-2xl border border-white/10 bg-slate-900/80 p-5 md:grid-cols-4"
-      action="/"
-    >
-      <Filter label="Country">
-        <select
-          name="country"
-          value={country}
-          onChange={(event) => {
-            setCountry(event.target.value);
-            setRegion("");
-            setIsland("");
-          }}
-          className="input mt-2"
-        >
-          <option value="">All countries</option>
-          {countries.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
+  const activeFilterCount = [country, region, island, speciesId].filter(
+    Boolean,
+  ).length;
+
+  function renderControls() {
+    return (
+      <>
+        <Filter label="Country">
+          <select
+            name="country"
+            value={country}
+            onChange={(event) => {
+              setCountry(event.target.value);
+              setRegion("");
+              setIsland("");
+            }}
+            className="input mt-2"
+          >
+            <option value="">All countries</option>
+            {countries.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </Filter>
+
+        <Filter label="Region / state">
+          <select
+            name="region"
+            value={region}
+            disabled={!country}
+            onChange={(event) => {
+              setRegion(event.target.value);
+              setIsland("");
+            }}
+            className="input mt-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="">
+              {country ? "All regions" : "Choose a country first"}
             </option>
-          ))}
-        </select>
-      </Filter>
+            {regions.map((value) => (
+              <option key={value} value={value}>{value}</option>
+            ))}
+          </select>
+        </Filter>
 
-      <Filter label="Region / state">
-        <select
-          name="region"
-          value={region}
-          disabled={!country}
-          onChange={(event) => {
-            setRegion(event.target.value);
-            setIsland("");
-          }}
-          className="input mt-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="">
-            {country ? "All regions" : "Choose a country first"}
-          </option>
-          {regions.map((value) => (
-            <option key={value} value={value}>{value}</option>
-          ))}
-        </select>
-      </Filter>
+        <Filter label="Island">
+          <select
+            name="island"
+            value={island}
+            disabled={!country || islands.length === 0}
+            onChange={(event) => setIsland(event.target.value)}
+            className="input mt-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="">
+              {!country
+                ? "Choose a country first"
+                : islands.length
+                  ? "All islands"
+                  : "No islands available"}
+            </option>
+            {islands.map((value) => (
+              <option key={value} value={value}>{value}</option>
+            ))}
+          </select>
+        </Filter>
 
-      <Filter label="Island">
-        <select
-          name="island"
-          value={island}
-          disabled={!country || islands.length === 0}
-          onChange={(event) => setIsland(event.target.value)}
-          className="input mt-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="">
-            {!country
-              ? "Choose a country first"
-              : islands.length
-                ? "All islands"
-                : "No islands available"}
-          </option>
-          {islands.map((value) => (
-            <option key={value} value={value}>{value}</option>
-          ))}
-        </select>
-      </Filter>
+        <Filter label="Reported species">
+          <select
+            name="speciesId"
+            value={speciesId}
+            onChange={(event) => setSpeciesId(event.target.value)}
+            className="input mt-2"
+          >
+            <option value="">All species</option>
+            {species.map((item) => (
+              <option key={item.id} value={item.id}>{item.commonName}</option>
+            ))}
+          </select>
+        </Filter>
+      </>
+    );
+  }
 
-      <Filter label="Reported species">
-        <select
-          name="speciesId"
-          defaultValue={initialFilters.speciesId ?? ""}
-          className="input mt-2"
-        >
-          <option value="">All species</option>
-          {species.map((item) => (
-            <option key={item.id} value={item.id}>{item.commonName}</option>
-          ))}
-        </select>
-      </Filter>
-
-      <div className="flex gap-3 md:col-span-4 md:justify-end">
+  function renderActions() {
+    return (
+      <div className="flex items-center justify-end gap-3 md:col-span-4">
         <Link
           href="/"
           className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-400 hover:text-white"
@@ -169,7 +179,67 @@ export default function ExploreFilters({
           Apply filters
         </button>
       </div>
-    </form>
+    );
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-sm font-semibold text-white md:hidden"
+      >
+        <span>Filter dive sites</span>
+        <span className="rounded-full bg-cyan-300/10 px-2.5 py-1 text-xs text-cyan-300">
+          {activeFilterCount ? `${activeFilterCount} active` : "Filters"}
+        </span>
+      </button>
+
+      <form
+        className="hidden gap-4 rounded-2xl border border-white/10 bg-slate-900/80 p-5 md:grid md:grid-cols-4"
+        action="/"
+      >
+        {renderControls()}
+        {renderActions()}
+      </form>
+
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center p-3 md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="mobile-filter-title"
+        >
+          <button
+            type="button"
+            aria-label="Close filters"
+            onClick={() => setIsOpen(false)}
+            className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+          />
+          <form
+            action="/"
+            className="relative z-10 grid max-h-[88vh] w-full max-w-md gap-5 overflow-y-auto rounded-3xl border border-white/10 bg-slate-900 p-5 shadow-2xl"
+          >
+            <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">Explore</p>
+                <h2 id="mobile-filter-title" className="mt-1 text-xl font-bold">Filter dive sites</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-lg text-slate-400 hover:text-white"
+                aria-label="Close filters"
+              >
+                ×
+              </button>
+            </div>
+            {renderControls()}
+            {renderActions()}
+          </form>
+        </div>
+      )}
+    </>
   );
 }
 

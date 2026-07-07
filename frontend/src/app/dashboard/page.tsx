@@ -2,6 +2,9 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import LogoutButton from "./LogoutButton";
+import Pagination from "../Pagination";
+
+const RECORDS_PER_PAGE = 6;
 
 type User = {
   id: number;
@@ -33,7 +36,11 @@ async function authenticatedFetch(path: string, token: string) {
   });
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const cookieStore = await cookies();
   const token = cookieStore.get("reefradar_token")?.value;
 
@@ -56,6 +63,20 @@ export default async function DashboardPage() {
 
   const user: User = await userResponse.json();
   const diveLogs: DiveLog[] = await logsResponse.json();
+  const params = await searchParams;
+  const requestedPage = Number.parseInt(params.page ?? "1", 10);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(diveLogs.length / RECORDS_PER_PAGE),
+  );
+  const currentPage = Math.min(
+    Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1,
+    totalPages,
+  );
+  const visibleDiveLogs = diveLogs.slice(
+    (currentPage - 1) * RECORDS_PER_PAGE,
+    currentPage * RECORDS_PER_PAGE,
+  );
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -111,7 +132,7 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="mt-6 grid gap-4">
-              {diveLogs.map((log) => (
+              {visibleDiveLogs.map((log) => (
                 <Link
                     key={log.id}
                     href={`/dive-sites/${log.diveSiteId}`}
@@ -137,6 +158,12 @@ export default async function DashboardPage() {
               ))}
             </div>
           )}
+          <Pagination
+            key={currentPage}
+            basePath="/dashboard"
+            currentPage={currentPage}
+            totalPages={totalPages}
+          />
         </section>
       </div>
     </main>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 type DiveSite = {
@@ -64,6 +65,8 @@ async function getSightings(id: string): Promise<Sighting[]> {
 
 export default async function DiveSitePage({ params }: PageProps) {
   const { id } = await params;
+  const cookieStore = await cookies();
+  const isLoggedIn = Boolean(cookieStore.get("reefradar_token")?.value);
 
   const [site, sightings] = await Promise.all([
     getDiveSite(id),
@@ -99,6 +102,15 @@ export default async function DiveSitePage({ params }: PageProps) {
             <Info label="Latitude" value={String(site.latitude)} />
             <Info label="Longitude" value={String(site.longitude)} />
           </div>
+
+          {isLoggedIn && (
+            <Link
+              href={`/dive-logs/new?diveSiteId=${site.id}`}
+              className="mt-6 inline-flex rounded-xl bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
+            >
+              Log a dive at this site
+            </Link>
+          )}
 
           {site.sourceProvider === "OPENSTREETMAP" && site.sourceUrl && (
             <p className="mt-6 text-xs text-slate-500">

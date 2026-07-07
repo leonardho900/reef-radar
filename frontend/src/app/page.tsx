@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import ExploreFilters from "./ExploreFilters";
-import LogoutButton from "./dashboard/LogoutButton";
+import HomeNavigation from "./HomeNavigation";
+import Pagination from "./Pagination";
+
+const RECORDS_PER_PAGE = 6;
 
 type DiveSite = {
   id: number;
@@ -27,7 +30,13 @@ type SearchParams = {
   region?: string;
   island?: string;
   speciesId?: string;
+  page?: string;
 };
+
+function parsePage(value: string | undefined) {
+  const page = Number.parseInt(value ?? "1", 10);
+  return Number.isFinite(page) && page > 0 ? page : 1;
+}
 
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await fetch(`${process.env.BACKEND_URL}${path}`, {
@@ -75,41 +84,19 @@ export default async function Home({
   const diveSites = query.size
     ? await fetchJson<DiveSite[]>(`/api/dive-sites?${query}`)
     : allSites;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(diveSites.length / RECORDS_PER_PAGE),
+  );
+  const currentPage = Math.min(parsePage(filters.page), totalPages);
+  const visibleDiveSites = diveSites.slice(
+    (currentPage - 1) * RECORDS_PER_PAGE,
+    currentPage * RECORDS_PER_PAGE,
+  );
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <header className="border-b border-white/10 bg-slate-950/90 backdrop-blur">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between gap-5 px-5 py-5 sm:px-6">
-          <Link href="/" className="text-2xl font-bold text-cyan-300">ReefRadar</Link>
-          <div className="flex items-center gap-4 text-sm text-slate-300">
-            <Link href="/species" className="hover:text-white">Species</Link>
-            {isLoggedIn ? (
-              <>
-                <Link href="/dive-sites/new" className="hidden hover:text-white sm:inline">
-                  Add site
-                </Link>
-                <Link href="/dashboard" className="hover:text-white">
-                  Dashboard
-                </Link>
-                <Link
-                  href="/dive-logs/new"
-                  className="rounded-lg bg-cyan-400 px-3 py-2 font-semibold text-slate-950 transition hover:bg-cyan-300"
-                >
-                  Add dive
-                </Link>
-                <LogoutButton />
-              </>
-            ) : (
-              <Link
-                href="/login"
-                className="rounded-lg border border-white/10 px-3 py-2 hover:bg-white/5"
-              >
-                Login
-              </Link>
-            )}
-          </div>
-        </nav>
-      </header>
+      <HomeNavigation isLoggedIn={isLoggedIn} />
 
       <section className="mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-20">
         <p className="mb-4 font-medium text-cyan-400">Explore beneath the surface</p>
@@ -143,24 +130,48 @@ export default async function Home({
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2">
-            {diveSites.map((site) => (
-              <Link key={site.id} href={`/dive-sites/${site.id}`} className="rounded-2xl border border-white/10 bg-slate-900 p-6 transition hover:-translate-y-1 hover:border-cyan-400/50">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm text-cyan-300">{[site.countryName, site.region, site.island].filter(Boolean).join(" · ")}</p>
-                    <h3 className="mt-2 text-xl font-semibold">{site.name}</h3>
+            {visibleDiveSites.map((site) => (
+              <article key={site.id} className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900 transition hover:-translate-y-1 hover:border-cyan-400/50">
+                <Link href={`/dive-sites/${site.id}`} className="block p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm text-cyan-300">{[site.countryName, site.region, site.island].filter(Boolean).join(" · ")}</p>
+                      <h3 className="mt-2 text-xl font-semibold">{site.name}</h3>
+                    </div>
+                    <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-300">{site.difficulty}</span>
                   </div>
-                  <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-300">{site.difficulty}</span>
-                </div>
-                {site.description && <p className="mt-4 line-clamp-2 text-slate-400">{site.description}</p>}
-                <div className="mt-6 flex flex-wrap gap-4 text-sm text-slate-300">
-                  <span>Visibility: {site.averageVisibilityMeters ? `${site.averageVisibilityMeters} m` : "Not reported"}</span>
-                  <span>{site.latitude}, {site.longitude}</span>
-                </div>
-              </Link>
+                  {site.description && <p className="mt-4 line-clamp-2 text-slate-400">{site.description}</p>}
+                  <div className="mt-6 flex flex-wrap gap-4 text-sm text-slate-300">
+                    <span>Visibility: {site.averageVisibilityMeters ? `${site.averageVisibilityMeters} m` : "Not reported"}</span>
+                    <span>{site.latitude}, {site.longitude}</span>
+                  </div>
+                </Link>
+                {isLoggedIn && (
+                  <div className="border-t border-white/[0.07] px-6 py-3">
+                    <Link
+                      href={`/dive-logs/new?diveSiteId=${site.id}`}
+                      className="text-sm font-semibold text-cyan-300 transition hover:text-cyan-200"
+                    >
+                      Log a dive here →
+                    </Link>
+                  </div>
+                )}
+              </article>
             ))}
           </div>
         )}
+        <Pagination
+          key={currentPage}
+          basePath="/"
+          currentPage={currentPage}
+          totalPages={totalPages}
+          query={{
+            country: filters.country,
+            region: filters.region,
+            island: filters.island,
+            speciesId: filters.speciesId,
+          }}
+        />
         <p className="mt-10 text-xs text-slate-600">
           Some dive-site records are sourced from{" "}
           <a
