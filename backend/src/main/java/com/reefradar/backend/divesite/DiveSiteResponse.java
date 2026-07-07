@@ -21,6 +21,10 @@ public record DiveSiteResponse(
         LocalDate lastSeenDate,
         Long diveCount
 ) {
+    public DiveSiteResponse {
+        diveCount = diveCount == null ? 0L : diveCount;
+    }
+
     public static DiveSiteResponse from(DiveSite diveSite) {
         return from(diveSite, null, 0L);
     }

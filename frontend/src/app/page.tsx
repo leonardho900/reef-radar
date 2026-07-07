@@ -19,7 +19,7 @@ type DiveSite = {
   region: string;
   island: string | null;
   lastSeenDate: string | null;
-  diveCount: number;
+  diveCount?: number | null;
 };
 
 type Species = {
@@ -146,7 +146,7 @@ export default async function Home({
                   </div>
                   {site.description && <p className="mt-4 line-clamp-2 text-slate-400">{site.description}</p>}
                   <div className="mt-6 flex flex-wrap gap-4 text-sm text-slate-300">
-                    <span>{site.diveCount} {site.diveCount === 1 ? "dive" : "dives"} logged</span>
+                    <span>{site.diveCount ?? 0} {site.diveCount === 1 ? "dive" : "dives"} logged</span>
                     <span>Visibility: {site.averageVisibilityMeters ? `${site.averageVisibilityMeters} m` : "Not reported"}</span>
                     <span>{site.latitude}, {site.longitude}</span>
                   </div>
