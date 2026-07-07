@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
 
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -63,7 +63,7 @@ class SpeciesServiceTests {
     void returnsReportedDiveSitesFromAggregateQuery() {
         SpeciesDiveSiteResponse site = new SpeciesDiveSiteResponse(
                 1L, "Sipadan Island", "MY", "Malaysia", "Sabah",
-                "Sipadan Island", 4L, Instant.parse("2026-07-01T10:00:00Z")
+                "Sipadan Island", 4L, LocalDate.of(2026, 7, 1)
         );
         when(speciesRepository.existsById(1L)).thenReturn(true);
         when(sightingRepository.findDiveSitesReportedForSpecies(1L))

@@ -2,17 +2,14 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import SearchableDropdown from "./SearchableDropdown";
+import SpeciesSearchSelect, { SearchableSpecies } from "./SpeciesSearchSelect";
 
 type LocationSite = {
   countryCode: string;
   countryName: string;
   region: string;
   island: string | null;
-};
-
-type SpeciesOption = {
-  id: number;
-  commonName: string;
 };
 
 type InitialFilters = {
@@ -28,7 +25,7 @@ export default function ExploreFilters({
   initialFilters,
 }: {
   sites: LocationSite[];
-  species: SpeciesOption[];
+  species: SearchableSpecies[];
   initialFilters: InitialFilters;
 }) {
   const [country, setCountry] = useState(initialFilters.country ?? "");
@@ -88,80 +85,62 @@ export default function ExploreFilters({
   function renderControls() {
     return (
       <>
+        <Filter label="Reported species">
+          <SpeciesSearchSelect
+            species={species}
+            selectedId={speciesId}
+            onChange={setSpeciesId}
+          />
+        </Filter>
+
         <Filter label="Country">
-          <select
+          <SearchableDropdown
             name="country"
             value={country}
-            onChange={(event) => {
-              setCountry(event.target.value);
+            options={countries}
+            emptyLabel="All countries"
+            searchLabel="countries"
+            onChange={(value) => {
+              setCountry(value);
               setRegion("");
               setIsland("");
             }}
-            className="input mt-2"
-          >
-            <option value="">All countries</option>
-            {countries.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          />
         </Filter>
 
         <Filter label="Region / state">
-          <select
+          <SearchableDropdown
             name="region"
             value={region}
             disabled={!country}
-            onChange={(event) => {
-              setRegion(event.target.value);
+            options={regions.map((value) => ({ value, label: value }))}
+            emptyLabel={country ? "All regions" : "Choose a country first"}
+            searchLabel="regions"
+            onChange={(value) => {
+              setRegion(value);
               setIsland("");
             }}
-            className="input mt-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="">
-              {country ? "All regions" : "Choose a country first"}
-            </option>
-            {regions.map((value) => (
-              <option key={value} value={value}>{value}</option>
-            ))}
-          </select>
+          />
         </Filter>
 
         <Filter label="Island">
-          <select
+          <SearchableDropdown
             name="island"
             value={island}
             disabled={!country || islands.length === 0}
-            onChange={(event) => setIsland(event.target.value)}
-            className="input mt-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="">
-              {!country
+            options={islands.map((value) => ({ value, label: value }))}
+            emptyLabel={
+              !country
                 ? "Choose a country first"
                 : islands.length
                   ? "All islands"
-                  : "No islands available"}
-            </option>
-            {islands.map((value) => (
-              <option key={value} value={value}>{value}</option>
-            ))}
-          </select>
+                  : "No islands available"
+            }
+            searchLabel="islands"
+            onChange={setIsland}
+          />
         </Filter>
 
-        <Filter label="Reported species">
-          <select
-            name="speciesId"
-            value={speciesId}
-            onChange={(event) => setSpeciesId(event.target.value)}
-            className="input mt-2"
-          >
-            <option value="">All species</option>
-            {species.map((item) => (
-              <option key={item.id} value={item.id}>{item.commonName}</option>
-            ))}
-          </select>
-        </Filter>
       </>
     );
   }

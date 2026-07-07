@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
+import SearchableDropdown from "../../SearchableDropdown";
 
 type DiveSite = {
   id: number;
@@ -205,91 +206,91 @@ export default function DiveLogForm({
           >
             <div className="grid gap-6 sm:grid-cols-2">
               <Field label="Country">
-                <select
-                  required
+                <SearchableDropdown
+                  name="country"
                   value={selectedCountry}
-                  onChange={(event) => {
-                    setSelectedCountry(event.target.value);
+                  options={countries.map((country) => ({
+                    value: country,
+                    label: country,
+                  }))}
+                  emptyLabel="Choose a country"
+                  searchLabel="countries"
+                  withTopMargin={false}
+                  onChange={(value) => {
+                    setSelectedCountry(value);
                     setSelectedRegion("");
                     setSelectedIsland("");
                     setSelectedDiveSiteId("");
                   }}
-                  className="input bg-slate-950/70"
-                >
-                  <option value="">Choose a country</option>
-                  {countries.map((country) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  ))}
-                </select>
+                />
               </Field>
 
               <Field label="Region">
-                <select
-                  required
+                <SearchableDropdown
+                  name="region"
                   value={selectedRegion}
                   disabled={!selectedCountry}
-                  onChange={(event) => {
-                    setSelectedRegion(event.target.value);
+                  options={regions.map((region) => ({
+                    value: region,
+                    label: region,
+                  }))}
+                  emptyLabel={
+                    selectedCountry
+                      ? "Choose a region"
+                      : "Choose a country first"
+                  }
+                  searchLabel="regions"
+                  withTopMargin={false}
+                  onChange={(value) => {
+                    setSelectedRegion(value);
                     setSelectedIsland("");
                     setSelectedDiveSiteId("");
                   }}
-                  className="input bg-slate-950/70 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">
-                    {selectedCountry ? "Choose a region" : "Choose a country first"}
-                  </option>
-                  {regions.map((region) => (
-                    <option key={region} value={region}>
-                      {region}
-                    </option>
-                  ))}
-                </select>
+                />
               </Field>
 
               <Field label="Island">
-                <select
-                  required
+                <SearchableDropdown
+                  name="island"
                   value={selectedIsland}
                   disabled={!selectedRegion}
-                  onChange={(event) => {
-                    setSelectedIsland(event.target.value);
+                  options={islands.map((island) => ({
+                    value: island,
+                    label:
+                      island === NO_ISLAND ? "No island specified" : island,
+                  }))}
+                  emptyLabel={
+                    selectedRegion
+                      ? "Choose an island"
+                      : "Choose a region first"
+                  }
+                  searchLabel="islands"
+                  withTopMargin={false}
+                  onChange={(value) => {
+                    setSelectedIsland(value);
                     setSelectedDiveSiteId("");
                   }}
-                  className="input bg-slate-950/70 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">
-                    {selectedRegion ? "Choose an island" : "Choose a region first"}
-                  </option>
-                  {islands.map((island) => (
-                    <option key={island} value={island}>
-                      {island === NO_ISLAND ? "No island specified" : island}
-                    </option>
-                  ))}
-                </select>
+                />
               </Field>
 
               <Field label="Dive site">
-                <select
+                <SearchableDropdown
                   name="diveSiteId"
-                  required
                   value={selectedDiveSiteId}
                   disabled={!selectedIsland}
-                  onChange={(event) =>
-                    setSelectedDiveSiteId(event.target.value)
+                  options={filteredDiveSites.map((site) => ({
+                    value: String(site.id),
+                    label: site.name,
+                  }))}
+                  emptyLabel={
+                    selectedIsland
+                      ? "Choose a dive site"
+                      : "Choose an island first"
                   }
-                  className="input bg-slate-950/70 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">
-                    {selectedIsland ? "Choose a dive site" : "Choose an island first"}
-                  </option>
-                  {filteredDiveSites.map((site) => (
-                    <option key={site.id} value={site.id}>
-                      {site.name}
-                    </option>
-                  ))}
-                </select>
+                  searchLabel="dive sites"
+                  withTopMargin={false}
+                  onChange={setSelectedDiveSiteId}
+                />
               </Field>
 
               <Field label="Dive date">

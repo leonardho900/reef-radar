@@ -26,6 +26,7 @@ type Sighting = {
   speciesScientificName: string;
   quantity: number;
   notes: string | null;
+  diveDate: string;
   createdAt: string;
 };
 
@@ -157,7 +158,7 @@ export default async function DiveSitePage({ params }: PageProps) {
                   )}
 
                   <p className="mt-4 text-xs text-slate-500">
-                    Recorded {new Date(sighting.createdAt).toLocaleDateString()}
+                    Reported from a dive on {formatDiveDate(sighting.diveDate)}
                   </p>
                 </article>
               ))}
@@ -167,6 +168,13 @@ export default async function DiveSitePage({ params }: PageProps) {
       </div>
     </main>
   );
+}
+
+function formatDiveDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00Z`));
 }
 
 function Info({ label, value }: { label: string; value: string }) {

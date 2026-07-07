@@ -6,12 +6,18 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.reefradar.backend.sighting.Sighting;
+import com.reefradar.backend.sighting.SightingRepository;
+import com.reefradar.backend.divelog.DiveLogRepository;
 import com.reefradar.backend.user.User;
 import com.reefradar.backend.user.UserNotFoundException;
 import com.reefradar.backend.user.UserRepository;
 
+import java.util.Comparator;
+import java.util.Map;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import jakarta.persistence.criteria.Subquery;
 
@@ -20,13 +26,19 @@ public class DiveSiteService {
 
     private final DiveSiteRepository diveSiteRepository;
     private final UserRepository userRepository;
+    private final SightingRepository sightingRepository;
+    private final DiveLogRepository diveLogRepository;
 
     public DiveSiteService(
             DiveSiteRepository diveSiteRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            SightingRepository sightingRepository,
+            DiveLogRepository diveLogRepository
     ) {
         this.diveSiteRepository = diveSiteRepository;
         this.userRepository = userRepository;
+        this.sightingRepository = sightingRepository;
+        this.diveLogRepository = diveLogRepository;
     }
 
     @Transactional(readOnly = true)
@@ -43,12 +55,63 @@ public class DiveSiteService {
                 speciesId
         );
 
-        return diveSiteRepository.findAll(
+        List<DiveSite> diveSites = diveSiteRepository.findAll(
                         filters,
                         Sort.by(Sort.Direction.ASC, "name")
-                )
+                );
+
+        Map<Long, Long> diveCountsBySite = diveLogRepository
+                .countDivesByDiveSite()
                 .stream()
-                .map(DiveSiteResponse::from)
+                .collect(Collectors.toMap(
+                        DiveSiteDiveCount::diveSiteId,
+                        DiveSiteDiveCount::diveCount
+                ));
+
+        if (speciesId == null) {
+            return diveSites.stream()
+                    .map(diveSite -> DiveSiteResponse.from(
+                            diveSite,
+                            null,
+                            diveCountsBySite.getOrDefault(diveSite.getId(), 0L)
+                    ))
+                    .sorted(Comparator
+                            .comparing(
+                                    DiveSiteResponse::diveCount,
+                                    Comparator.reverseOrder()
+                            )
+                            .thenComparing(
+                                    DiveSiteResponse::name,
+                                    String.CASE_INSENSITIVE_ORDER
+                            ))
+                    .toList();
+        }
+
+        Map<Long, DiveSiteLastSeen> lastSeenBySite = sightingRepository
+                .findLastSeenDatesForSpecies(speciesId)
+                .stream()
+                .collect(Collectors.toMap(
+                        DiveSiteLastSeen::diveSiteId,
+                        Function.identity()
+                ));
+
+        return diveSites.stream()
+                .map(diveSite -> DiveSiteResponse.from(
+                        diveSite,
+                        lastSeenBySite.containsKey(diveSite.getId())
+                                ? lastSeenBySite.get(diveSite.getId()).lastSeenDate()
+                                : null,
+                        diveCountsBySite.getOrDefault(diveSite.getId(), 0L)
+                ))
+                .sorted(Comparator
+                        .comparing(
+                                DiveSiteResponse::lastSeenDate,
+                                Comparator.nullsLast(Comparator.reverseOrder())
+                        )
+                        .thenComparing(
+                                DiveSiteResponse::name,
+                                String.CASE_INSENSITIVE_ORDER
+                        ))
                 .toList();
     }
 

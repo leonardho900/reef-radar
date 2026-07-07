@@ -18,11 +18,15 @@ type DiveSite = {
   countryName: string;
   region: string;
   island: string | null;
+  lastSeenDate: string | null;
+  diveCount: number;
 };
 
 type Species = {
   id: number;
   commonName: string;
+  scientificName: string;
+  category: string;
 };
 
 type SearchParams = {
@@ -142,9 +146,15 @@ export default async function Home({
                   </div>
                   {site.description && <p className="mt-4 line-clamp-2 text-slate-400">{site.description}</p>}
                   <div className="mt-6 flex flex-wrap gap-4 text-sm text-slate-300">
+                    <span>{site.diveCount} {site.diveCount === 1 ? "dive" : "dives"} logged</span>
                     <span>Visibility: {site.averageVisibilityMeters ? `${site.averageVisibilityMeters} m` : "Not reported"}</span>
                     <span>{site.latitude}, {site.longitude}</span>
                   </div>
+                  {site.lastSeenDate && (
+                    <p className="mt-4 text-sm font-medium text-emerald-300">
+                      Recently seen {formatDiveDate(site.lastSeenDate)}
+                    </p>
+                  )}
                 </Link>
                 {isLoggedIn && (
                   <div className="border-t border-white/[0.07] px-6 py-3">
@@ -185,4 +195,11 @@ export default async function Home({
       </section>
     </main>
   );
+}
+
+function formatDiveDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00Z`));
 }

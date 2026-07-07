@@ -15,3 +15,5 @@ backend/target/
 # Frontend
 frontend/node_modules/
 frontend/.next/
+.vercel
+.env*

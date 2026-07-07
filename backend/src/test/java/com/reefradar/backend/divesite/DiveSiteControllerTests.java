@@ -48,7 +48,7 @@ class DiveSiteControllerTests {
                 3L, "Barracuda Point", null,
                 new BigDecimal("4.115"), new BigDecimal("118.629"),
                 Difficulty.ADVANCED, 25, "MY", "Malaysia", "Sabah",
-                "Sipadan Island", 7L, null, null
+                "Sipadan Island", 7L, null, null, null, 0L
         );
         Jwt jwt = Jwt.withTokenValue("token")
                 .header("alg", "HS256")

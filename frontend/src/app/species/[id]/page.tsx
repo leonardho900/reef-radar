@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 type Species = { id: number; commonName: string; scientificName: string; category: string; description: string | null };
-type ReportedSite = { diveSiteId: number; diveSiteName: string; countryCode: string; countryName: string; region: string; island: string | null; sightingCount: number; mostRecentSightingTime: string };
+type ReportedSite = { diveSiteId: number; diveSiteName: string; countryCode: string; countryName: string; region: string; island: string | null; sightingCount: number; mostRecentSightingDate: string };
 
 export default async function SpeciesDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -36,7 +36,7 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
               {sites.map((site) => (
                 <Link key={site.diveSiteId} href={`/dive-sites/${site.diveSiteId}`} className="flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-white/10 bg-slate-900 p-5 transition hover:border-cyan-300/40">
                   <div><p className="text-sm text-cyan-300">{[site.countryName, site.region, site.island].filter(Boolean).join(" · ")}</p><h3 className="mt-1 text-lg font-semibold">{site.diveSiteName}</h3></div>
-                  <div className="text-right text-sm"><p className="text-slate-200">{site.sightingCount} {site.sightingCount === 1 ? "report" : "reports"}</p><p className="mt-1 text-slate-500">Recently seen {new Date(site.mostRecentSightingTime).toLocaleDateString()}</p></div>
+                  <div className="text-right text-sm"><p className="text-slate-200">{site.sightingCount} {site.sightingCount === 1 ? "report" : "reports"}</p><p className="mt-1 text-slate-500">Recently seen {formatDiveDate(site.mostRecentSightingDate)}</p></div>
                 </Link>
               ))}
             </div>
@@ -45,4 +45,11 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
       </div>
     </main>
   );
+}
+
+function formatDiveDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00Z`));
 }

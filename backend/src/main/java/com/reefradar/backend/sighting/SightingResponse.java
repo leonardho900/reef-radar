@@ -1,6 +1,7 @@
 package com.reefradar.backend.sighting;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 public record SightingResponse(
         Long id,
@@ -10,6 +11,7 @@ public record SightingResponse(
         String speciesScientificName,
         Integer quantity,
         String notes,
+        LocalDate diveDate,
         Instant createdAt
 ) {
     public static SightingResponse from(Sighting sighting) {
@@ -21,6 +23,7 @@ public record SightingResponse(
                 sighting.getSpecies().getScientificName(),
                 sighting.getQuantity(),
                 sighting.getNotes(),
+                sighting.getDiveLog().getDiveDate(),
                 sighting.getCreatedAt()
         );
     }

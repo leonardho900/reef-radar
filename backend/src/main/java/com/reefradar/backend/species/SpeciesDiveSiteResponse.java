@@ -1,6 +1,6 @@
 package com.reefradar.backend.species;
 
-import java.time.Instant;
+import java.time.LocalDate;
 
 public record SpeciesDiveSiteResponse(
         Long diveSiteId,
@@ -10,6 +10,6 @@ public record SpeciesDiveSiteResponse(
         String region,
         String island,
         Long sightingCount,
-        Instant mostRecentSightingTime
+        LocalDate mostRecentSightingDate
 ) {
 }

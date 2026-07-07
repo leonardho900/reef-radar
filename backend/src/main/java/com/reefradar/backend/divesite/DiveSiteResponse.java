@@ -1,6 +1,7 @@
 package com.reefradar.backend.divesite;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record DiveSiteResponse(
         Long id,
@@ -16,9 +17,19 @@ public record DiveSiteResponse(
         String island,
         Long createdByUserId,
         String sourceProvider,
-        String sourceUrl
+        String sourceUrl,
+        LocalDate lastSeenDate,
+        Long diveCount
 ) {
     public static DiveSiteResponse from(DiveSite diveSite) {
+        return from(diveSite, null, 0L);
+    }
+
+    public static DiveSiteResponse from(
+            DiveSite diveSite,
+            LocalDate lastSeenDate,
+            Long diveCount
+    ) {
         return new DiveSiteResponse(
                 diveSite.getId(),
                 diveSite.getName(),
@@ -35,7 +46,9 @@ public record DiveSiteResponse(
                         ? null
                         : diveSite.getCreatedByUser().getId(),
                 diveSite.getSourceProvider(),
-                diveSite.getSourceUrl()
+                diveSite.getSourceUrl(),
+                lastSeenDate,
+                diveCount
         );
     }
 }

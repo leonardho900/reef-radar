@@ -1,14 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
+import SpeciesSearchSelect, { SearchableSpecies } from "../../../../SpeciesSearchSelect";
 
-type Species = {
-  id: number;
-  commonName: string;
-  scientificName: string;
-  category: string;
-};
+type Species = SearchableSpecies;
 
 export default function SightingForm({
   diveLogId,
@@ -22,11 +18,6 @@ export default function SightingForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedSpeciesId, setSelectedSpeciesId] = useState("");
   const [addedCount, setAddedCount] = useState(0);
-
-  const selectedSpecies = useMemo(
-    () => species.find((item) => String(item.id) === selectedSpeciesId),
-    [selectedSpeciesId, species],
-  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -131,49 +122,24 @@ export default function SightingForm({
               className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/85 shadow-2xl shadow-cyan-950/20 backdrop-blur"
             >
               <div className="space-y-7 p-6 sm:p-8">
-                <label className="block">
+                <div>
                   <span className="text-sm font-semibold text-slate-200">
                     Marine species
                   </span>
                   <span className="mt-1 block text-sm text-slate-500">
                     Choose the closest match from the species catalogue.
                   </span>
-                  <select
-                    name="speciesId"
+                  <SpeciesSearchSelect
+                    species={species}
+                    selectedId={selectedSpeciesId}
                     required
-                    value={selectedSpeciesId}
-                    onChange={(event) => {
-                      setSelectedSpeciesId(event.target.value);
+                    emptyLabel="Select a species"
+                    onChange={(id) => {
+                      setSelectedSpeciesId(id);
                       setSuccess("");
                     }}
-                    className="input mt-3"
-                  >
-                    <option value="" disabled>
-                      Select a species
-                    </option>
-                    {species.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.commonName}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                {selectedSpecies && (
-                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-cyan-300/15 bg-cyan-300/[0.06] px-4 py-3">
-                    <div>
-                      <p className="font-medium text-slate-100">
-                        {selectedSpecies.commonName}
-                      </p>
-                      <p className="mt-0.5 text-sm italic text-slate-400">
-                        {selectedSpecies.scientificName}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-slate-950/60 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-cyan-300">
-                      {selectedSpecies.category}
-                    </span>
-                  </div>
-                )}
+                  />
+                </div>
 
                 <div className="grid gap-6 sm:grid-cols-[9rem_1fr]">
                   <label className="block">

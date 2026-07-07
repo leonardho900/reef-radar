@@ -61,6 +61,28 @@ button:disabled {
     box-shadow 150ms ease;
 }
 
+input.input,
+select.input {
+  height: 3.25rem;
+  min-height: 3.25rem;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+input.input.compact-input {
+  height: 2.25rem;
+  min-height: 2.25rem;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.input.compact-dropdown {
+  height: 2.75rem;
+  min-height: 2.75rem;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 .input:hover {
   border-color: rgb(103 232 249 / 28%);
   background: rgb(15 23 42 / 100%);
