@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { fetchBackend } from "@/lib/backendFetch";
 
 type DiveSite = {
   id: number;
@@ -35,10 +36,7 @@ type PageProps = {
 };
 
 async function getDiveSite(id: string): Promise<DiveSite> {
-  const response = await fetch(
-    `${process.env.BACKEND_URL}/api/dive-sites/${id}`,
-    { cache: "no-store" },
-  );
+  const response = await fetchBackend(`/api/dive-sites/${id}`);
 
   if (response.status === 404) {
     notFound();
@@ -52,10 +50,7 @@ async function getDiveSite(id: string): Promise<DiveSite> {
 }
 
 async function getSightings(id: string): Promise<Sighting[]> {
-  const response = await fetch(
-    `${process.env.BACKEND_URL}/api/dive-sites/${id}/sightings`,
-    { cache: "no-store" },
-  );
+  const response = await fetchBackend(`/api/dive-sites/${id}/sightings`);
 
   if (!response.ok) {
     throw new Error("Unable to load sightings");

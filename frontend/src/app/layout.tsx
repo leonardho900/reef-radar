@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BackendWakeup from "./BackendWakeup";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +18,10 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className="h-full antialiased"
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <BackendWakeup />
+        {children}
+      </body>
     </html>
   );
 }

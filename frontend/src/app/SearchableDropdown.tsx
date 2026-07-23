@@ -106,7 +106,11 @@ export default function SearchableDropdown({
             />
           </div>
 
-          <div id={menuId} role="listbox" className="max-h-64 overflow-y-auto p-1.5">
+          <div
+            id={menuId}
+            role="listbox"
+            className="max-h-64 overflow-y-auto p-1.5"
+          >
             <OptionButton
               label={emptyLabel}
               selected={!value}

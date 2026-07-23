@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import DiveLogForm from "./DiveLogForm";
+import { fetchBackend } from "@/lib/backendFetch";
 
 type DiveSite = {
   id: number;
@@ -21,10 +22,7 @@ export default async function NewDiveLogPage({
     redirect("/login");
   }
 
-  const response = await fetch(
-    `${process.env.BACKEND_URL}/api/dive-sites`,
-    { cache: "no-store" },
-  );
+  const response = await fetchBackend("/api/dive-sites");
 
   if (!response.ok) {
     throw new Error("Unable to load dive sites");

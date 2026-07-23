@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { fetchBackend } from "@/lib/backendFetch";
 
 type Species = { id: number; commonName: string; scientificName: string; category: string; description: string | null };
 type ReportedSite = { diveSiteId: number; diveSiteName: string; countryCode: string; countryName: string; region: string; island: string | null; sightingCount: number; mostRecentSightingDate: string };
@@ -7,8 +8,8 @@ type ReportedSite = { diveSiteId: number; diveSiteName: string; countryCode: str
 export default async function SpeciesDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [speciesResponse, sitesResponse] = await Promise.all([
-    fetch(`${process.env.BACKEND_URL}/api/species/${id}`, { cache: "no-store" }),
-    fetch(`${process.env.BACKEND_URL}/api/species/${id}/dive-sites`, { cache: "no-store" }),
+    fetchBackend(`/api/species/${id}`),
+    fetchBackend(`/api/species/${id}/dive-sites`),
   ]);
   if (speciesResponse.status === 404 || sitesResponse.status === 404) notFound();
   if (!speciesResponse.ok || !sitesResponse.ok) throw new Error("Unable to load species details");

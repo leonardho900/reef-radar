@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import LogoutButton from "./LogoutButton";
 import Pagination from "../Pagination";
+import { fetchBackend } from "@/lib/backendFetch";
 
 const RECORDS_PER_PAGE = 6;
 
@@ -28,11 +29,10 @@ type DiveLog = {
 };
 
 async function authenticatedFetch(path: string, token: string) {
-  return fetch(`${process.env.BACKEND_URL}${path}`, {
+  return fetchBackend(path, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    cache: "no-store",
   });
 }
 

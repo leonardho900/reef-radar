@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { fetchBackend } from "@/lib/backendFetch";
 
 type Species = {
   id: number;
@@ -16,9 +17,8 @@ export default async function SpeciesDirectory({
   const { q = "" } = await searchParams;
   const params = new URLSearchParams();
   if (q.trim()) params.set("q", q.trim());
-  const response = await fetch(
-    `${process.env.BACKEND_URL}/api/species${params.size ? `?${params}` : ""}`,
-    { cache: "no-store" },
+  const response = await fetchBackend(
+    `/api/species${params.size ? `?${params}` : ""}`,
   );
   if (!response.ok) throw new Error("Unable to search species");
   const species: Species[] = await response.json();

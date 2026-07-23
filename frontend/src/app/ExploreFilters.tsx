@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import SearchableDropdown from "./SearchableDropdown";
 import SpeciesSearchSelect, { SearchableSpecies } from "./SpeciesSearchSelect";
@@ -148,12 +147,13 @@ export default function ExploreFilters({
   function renderActions() {
     return (
       <div className="flex items-center justify-end gap-3 md:col-span-4">
-        <Link
-          href="/"
+        <button
+          type="button"
+          onClick={() => window.location.assign("/")}
           className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-400 hover:text-white"
         >
           Clear
-        </Link>
+        </button>
         <button className="rounded-xl bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
           Apply filters
         </button>

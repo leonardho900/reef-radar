@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import SightingForm from "./SightingForm";
+import { fetchBackend } from "@/lib/backendFetch";
 
 type Species = {
   id: number;
@@ -27,10 +28,7 @@ export default async function NewSightingPage({ params }: PageProps) {
     notFound();
   }
 
-  const response = await fetch(
-    `${process.env.BACKEND_URL}/api/species`,
-    { cache: "no-store" },
-  );
+  const response = await fetchBackend("/api/species");
 
   if (!response.ok) {
     throw new Error("Unable to load species");

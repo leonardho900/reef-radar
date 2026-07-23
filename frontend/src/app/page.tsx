@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import ExploreFilters from "./ExploreFilters";
 import HomeNavigation from "./HomeNavigation";
 import Pagination from "./Pagination";
+import { fetchBackend } from "@/lib/backendFetch";
 
 const RECORDS_PER_PAGE = 6;
 
@@ -43,9 +44,7 @@ function parsePage(value: string | undefined) {
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${process.env.BACKEND_URL}${path}`, {
-    cache: "no-store",
-  });
+  const response = await fetchBackend(path);
   if (!response.ok) {
     const body = await response.text();
     let detail = body;

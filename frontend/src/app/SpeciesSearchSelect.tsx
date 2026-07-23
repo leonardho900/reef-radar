@@ -97,9 +97,7 @@ export default function SpeciesSearchSelect({
       </button>
 
       {isOpen && (
-        <div
-          className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-slate-950 shadow-2xl shadow-black/40"
-        >
+        <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-slate-950 shadow-2xl shadow-black/40">
           <div className="border-b border-white/10 p-2">
             <input
               type="text"
@@ -117,7 +115,11 @@ export default function SpeciesSearchSelect({
             />
           </div>
 
-          <div id={menuId} role="listbox" className="max-h-64 overflow-y-auto p-1.5">
+          <div
+            id={menuId}
+            role="listbox"
+            className="max-h-64 overflow-y-auto p-1.5"
+          >
             {!required && (
               <button
                 type="button"
